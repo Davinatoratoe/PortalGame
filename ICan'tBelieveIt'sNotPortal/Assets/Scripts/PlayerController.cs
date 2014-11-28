@@ -41,6 +41,14 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    void OnCollisionStay2D(Collision2D Coll)
+    {
+        if (Coll.transform.tag == "Block" && rigidbody2D.velocity.y < 0.1f)
+        {
+            isGrounded = true;
+        }
+    }
+
     void OnCollisionExit2D(Collision2D Coll)
     {
         if (Coll.transform.tag == "Block" && isGrounded)
