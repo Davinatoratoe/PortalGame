@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    //When the player enters a collision.
     void OnCollisionEnter2D(Collision2D Coll)
     {
         //Check if player collided with a 'block' and is not falling.
@@ -41,16 +42,20 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    //When the player stays in a collision.
     void OnCollisionStay2D(Collision2D Coll)
     {
+        //Check if player collided with a 'block' and is not falling.
         if (Coll.transform.tag == "Block" && rigidbody2D.velocity.y < 0.1f)
         {
             isGrounded = true;
         }
     }
 
+    //When the player exits a collision.
     void OnCollisionExit2D(Collision2D Coll)
     {
+        //Check if the player exited the collision with the 'block'
         if (Coll.transform.tag == "Block" && isGrounded)
         {
             isGrounded = false;
