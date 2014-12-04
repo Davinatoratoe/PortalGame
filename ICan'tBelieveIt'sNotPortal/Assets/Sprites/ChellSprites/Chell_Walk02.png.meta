@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: 1a1db100802a385439f193b7fa02545d
+guid: d9d9bc56835892c42a3518f664b8387d
 TextureImporter:
   fileIDToRecycleName:
-    21300000: StoneFloor
+    21300000: Chell_Walk02
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
