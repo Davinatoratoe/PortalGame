@@ -8,11 +8,11 @@ public class PlayerController : MonoBehaviour {
     public float jumpForce; //The force applied when the player jumps.
     public PlayerState currentPlayerState; //Create the variable to contain the enum.
     public Sprite idleSprite, jumpSprite, crouchSprite, fallingSprite, walkSprite;
-    public Texture2D cursorEmpty, cursorFill, cursorBlue, cursorOrange;
     public Sprite[] runningSprites = new Sprite[6];
+    public Texture2D cursorEmpty, cursorFill, cursorBlue, cursorOrange;
     bool facingLeft = false; //For switching direction.
-    public GameObject Portal; //Prefab Portal.
-    bool bluePortalActive = false, orangePortalActive = false;
+    public GameObject PortalShoot; //Prefab PortalShoot.
+    public bool bluePortalActive = false, orangePortalActive = false;
 
     //Create an enum for the player's state.
     public enum PlayerState
@@ -26,7 +26,6 @@ public class PlayerController : MonoBehaviour {
 
     void Start()
     {
-        Cursor.SetCursor(cursorFill, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto);
         currentPlayerState = PlayerState.IDLE;
     }
 
@@ -65,17 +64,27 @@ public class PlayerController : MonoBehaviour {
         {
             if (bluePortalActive) //Blue is already active.
             {
-                //NONONO!
+                //NONONO! YOU CANT DO THAT! DUMBO!
             }
             if (!bluePortalActive && !orangePortalActive) //Only blue is active.
             {
-                Cursor.SetCursor(cursorOrange, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto);
-                bluePortalActive = true;
+                //Attempt to shoot a Portal.
+                if (!GameObject.Find("PortalShoot(Clone)"))
+                {
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
+                    Obj.GetComponent<PortalShootController>().portalColour = "blue";
+                    Obj.GetComponent<PortalShootController>().firstPortal = true;
+                }
             }
             if (!bluePortalActive && orangePortalActive) //Both active.
             {
-                Cursor.SetCursor(cursorEmpty, new Vector2(cursorEmpty.width / 2, cursorBlue.height / 2), CursorMode.Auto);
-                bluePortalActive = true;
+                //Attempt to shoot a Portal.
+                if (!GameObject.Find("PortalShoot(Clone)"))
+                {
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
+                    Obj.GetComponent<PortalShootController>().portalColour = "blue";
+                    Obj.GetComponent<PortalShootController>().firstPortal = false;
+                }
             }
         }
 
@@ -84,24 +93,38 @@ public class PlayerController : MonoBehaviour {
         {
             if (orangePortalActive) //Orange is already active.
             {
-                //NONONO!
+                //NONONO! YOU CANT DO THAT! DUMBO!
             }
             if (!orangePortalActive && !bluePortalActive) //Only orange is active.
             {
-                Cursor.SetCursor(cursorBlue, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto);
-                orangePortalActive = true;
+                //Attempt to shoot a Portal.
+                if (!GameObject.Find("PortalShoot(Clone)"))
+                {
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
+                    Obj.GetComponent<PortalShootController>().portalColour = "orange";
+                    Obj.GetComponent<PortalShootController>().firstPortal = true;
+                }
             }
             if (!orangePortalActive && bluePortalActive) //Both active.
             {
-                Cursor.SetCursor(cursorEmpty, new Vector2(cursorEmpty.width / 2, cursorBlue.height / 2), CursorMode.Auto);
-                orangePortalActive = true;
+                //Attempt to shoot a Portal.
+                if (!GameObject.Find("PortalShoot(Clone)"))
+                {
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
+                    Obj.GetComponent<PortalShootController>().portalColour = "orange";
+                    Obj.GetComponent<PortalShootController>().firstPortal = true;
+                }
             }
         }
 
         //Check if the player wants to crouch.
-        if (Input.GetButton("Crouch"))
+        if (Input.GetButton("Crouch") && currentPlayerState != PlayerState.WALK)
         {
             currentPlayerState = PlayerState.CROUCH;
+        }
+        if (Input.GetButtonUp("Crouch"))
+        {
+            currentPlayerState = PlayerState.IDLE;
         }
 
         if (Input.GetButtonDown("Clear"))
@@ -113,10 +136,10 @@ public class PlayerController : MonoBehaviour {
         }
 
         //!!! SPRITE MANAGER !!!
-        Debug.Log(currentPlayerState.ToString());
+        //Debug.Log(currentPlayerState.ToString());
 
         //Check if the player is standing still on the ground.
-        if (Input.GetAxis("Horizontal") == 0 && rigidbody2D.velocity.y == 0 && isGrounded)
+        if (Input.GetAxis("Horizontal") == 0 && rigidbody2D.velocity.y == 0 && isGrounded && currentPlayerState != PlayerState.CROUCH)
         {
             currentPlayerState = PlayerState.IDLE;
         }
@@ -165,7 +188,7 @@ public class PlayerController : MonoBehaviour {
     void OnCollisionEnter2D(Collision2D Coll)
     {
         //Check if player collided with a 'block' and is not falling.
-        if (Coll.transform.tag == "Block" && rigidbody2D.velocity.y < 0.1f)
+        if (Coll.transform.tag.EndsWith("Block") && rigidbody2D.velocity.y < 0.1f)
         {
             isGrounded = true;
         }
@@ -175,7 +198,7 @@ public class PlayerController : MonoBehaviour {
     void OnCollisionStay2D(Collision2D Coll)
     {
         //Check if player collided with a 'block' and is not falling.
-        if (Coll.transform.tag == "Block" && rigidbody2D.velocity.y < 0.1f)
+        if (Coll.transform.tag.EndsWith("Block") && rigidbody2D.velocity.y < 0.1f)
         {
             isGrounded = true;
         }
@@ -185,7 +208,7 @@ public class PlayerController : MonoBehaviour {
     void OnCollisionExit2D(Collision2D Coll)
     {
         //Check if the player exited the collision with the 'block'
-        if (Coll.transform.tag == "Block" && isGrounded)
+        if (Coll.transform.tag.EndsWith("Block") && isGrounded)
         {
             isGrounded = false;
         }
