@@ -26,12 +26,13 @@ public class PlayerController : MonoBehaviour {
 
     void Start()
     {
-        currentPlayerState = PlayerState.IDLE;
+        currentPlayerState = PlayerState.IDLE; //Start the player as IDLE.
     }
 
     //Update function - gets called every frame.
     void Update()
     {
+        Debug.Log(transform.rigidbody2D.velocity);
         //!!! INPUT MANAGER !!!
         //Check if the player wants to move left or right.
         if (Input.GetAxis("Horizontal") != 0)
@@ -44,11 +45,35 @@ public class PlayerController : MonoBehaviour {
             Vector3 movePos = new Vector3(moveSpeed, 0, 0);
             if (hor < 0)
             {
-                transform.position -= movePos;
+                //transform.position -= movePos;
+                if (isGrounded)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(-moveSpeed * 30, transform.rigidbody2D.velocity.y);
+                }
+                else if (!isGrounded && transform.rigidbody2D.velocity.x <= 3)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x - moveSpeed, transform.rigidbody2D.velocity.y);
+                }
             }
             if (hor > 0)
             {
-                transform.position += movePos;
+                //transform.position += movePos;
+                if (isGrounded)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(moveSpeed * 30, transform.rigidbody2D.velocity.y);
+                }
+                else if (!isGrounded && transform.rigidbody2D.velocity.x >= -3)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x + moveSpeed, transform.rigidbody2D.velocity.y);
+                }
+            }
+        }
+
+        if (Input.GetAxis("Horizontal") == 0 && isGrounded && currentPlayerState != PlayerState.JUMP && currentPlayerState != PlayerState.FALL)
+        {
+            if (transform.rigidbody2D.velocity.x > 0 || transform.rigidbody2D.velocity.x < 0) 
+            {
+                transform.rigidbody2D.velocity = new Vector2(0, 0);
             }
         }
 
@@ -64,15 +89,16 @@ public class PlayerController : MonoBehaviour {
         {
             if (bluePortalActive) //Blue is already active.
             {
-                //NONONO! YOU CANT DO THAT! DUMBO!
+                Destroy(GameObject.Find("BluePortal(Clone)").gameObject);
+                bluePortalActive = false;
             }
             if (!bluePortalActive && !orangePortalActive) //Only blue is active.
             {
                 //Attempt to shoot a Portal.
                 if (!GameObject.Find("PortalShoot(Clone)"))
                 {
-                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
-                    Obj.GetComponent<PortalShootController>().portalColour = "blue";
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject; //Create a PortalShoot.
+                    Obj.GetComponent<PortalShootController>().portalColour = "blue"; //Set the variables in PortalShoot.
                     Obj.GetComponent<PortalShootController>().firstPortal = true;
                 }
             }
@@ -81,8 +107,8 @@ public class PlayerController : MonoBehaviour {
                 //Attempt to shoot a Portal.
                 if (!GameObject.Find("PortalShoot(Clone)"))
                 {
-                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
-                    Obj.GetComponent<PortalShootController>().portalColour = "blue";
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject; //Create a PortalShoot.
+                    Obj.GetComponent<PortalShootController>().portalColour = "blue"; //Set the variables in PortalShoot.
                     Obj.GetComponent<PortalShootController>().firstPortal = false;
                 }
             }
@@ -93,15 +119,16 @@ public class PlayerController : MonoBehaviour {
         {
             if (orangePortalActive) //Orange is already active.
             {
-                //NONONO! YOU CANT DO THAT! DUMBO!
+                Destroy(GameObject.Find("OrangePortal(Clone)").gameObject);
+                orangePortalActive = false;
             }
             if (!orangePortalActive && !bluePortalActive) //Only orange is active.
             {
                 //Attempt to shoot a Portal.
                 if (!GameObject.Find("PortalShoot(Clone)"))
                 {
-                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
-                    Obj.GetComponent<PortalShootController>().portalColour = "orange";
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject; //Create a PortalShoot.
+                    Obj.GetComponent<PortalShootController>().portalColour = "orange"; //Set the variables in PortalShoot.
                     Obj.GetComponent<PortalShootController>().firstPortal = true;
                 }
             }
@@ -110,29 +137,37 @@ public class PlayerController : MonoBehaviour {
                 //Attempt to shoot a Portal.
                 if (!GameObject.Find("PortalShoot(Clone)"))
                 {
-                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject;
-                    Obj.GetComponent<PortalShootController>().portalColour = "orange";
-                    Obj.GetComponent<PortalShootController>().firstPortal = true;
+                    GameObject Obj = Instantiate(PortalShoot, transform.position, Quaternion.identity) as GameObject; //Create a PortalShoot.
+                    Obj.GetComponent<PortalShootController>().portalColour = "orange"; //Set the variables in PortalShoot.
+                    Obj.GetComponent<PortalShootController>().firstPortal = false;
                 }
             }
         }
 
         //Check if the player wants to crouch.
-        if (Input.GetButton("Crouch") && currentPlayerState != PlayerState.WALK)
+        if (Input.GetButton("Crouch") && currentPlayerState != PlayerState.WALK) //If the crouch button is pressed and the player is not walking.
         {
-            currentPlayerState = PlayerState.CROUCH;
+            currentPlayerState = PlayerState.CROUCH; //Set the player state to CROUCH.
         }
-        if (Input.GetButtonUp("Crouch"))
+        if (Input.GetButtonUp("Crouch")) //If the crouch button is released.
         {
-            currentPlayerState = PlayerState.IDLE;
+            currentPlayerState = PlayerState.IDLE; //Set the player state to IDLE.
         }
 
-        if (Input.GetButtonDown("Clear"))
+        if (Input.GetButtonDown("Clear")) //If the clear button is pressed.
         {
-            Debug.Log("Clear");
-            orangePortalActive = false;
+            orangePortalActive = false; //Make all portals inactive.
             bluePortalActive = false;
-            Cursor.SetCursor(cursorFill, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto);
+            if (GameObject.Find("BluePortal(Clone)").gameObject) //Destroy all portals in the scene.
+            {
+                Destroy(GameObject.Find("BluePortal(Clone)"));
+            }
+            if (GameObject.Find("OrangePortal(Clone)"))
+            {
+                Destroy(GameObject.Find("OrangePortal(Clone)").gameObject);
+            }
+            
+            Cursor.SetCursor(cursorFill, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto); //Reset the cursor.
         }
 
         //!!! SPRITE MANAGER !!!
@@ -141,21 +176,21 @@ public class PlayerController : MonoBehaviour {
         //Check if the player is standing still on the ground.
         if (Input.GetAxis("Horizontal") == 0 && rigidbody2D.velocity.y == 0 && isGrounded && currentPlayerState != PlayerState.CROUCH)
         {
-            currentPlayerState = PlayerState.IDLE;
+            currentPlayerState = PlayerState.IDLE; //Set the player state to IDLE.
         }
-        if (rigidbody2D.velocity.y > 0)
+        if (rigidbody2D.velocity.y > 0) //If the player's velocity is over 0.
         {
-            currentPlayerState = PlayerState.JUMP;
+            currentPlayerState = PlayerState.JUMP; //Set the player state to JUMP.
         }
-        if (rigidbody2D.velocity.y < 0 && !isGrounded)
+        if (rigidbody2D.velocity.y < 0 && !isGrounded) //If the player's velocity is under 0 and the player is not grounded.
         {
-            currentPlayerState = PlayerState.FALL;
+            currentPlayerState = PlayerState.FALL; //Set the player state to FALL.
         }
 
         //Change the player's facing direction depending on the mouse position.
         if (Input.mousePosition.x < Screen.width / 2 && !facingLeft || Input.mousePosition.x > Screen.width / 2 && facingLeft)
         {
-            transform.localScale = new Vector3(transform.localScale.x * -1, transform.localScale.y, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x * -1, transform.localScale.y, transform.localScale.z); //Flip the player's sprite.
             facingLeft = !facingLeft;
         }
 
@@ -182,6 +217,90 @@ public class PlayerController : MonoBehaviour {
                 GetComponent<SpriteRenderer>().sprite = crouchSprite;
                 break;
         }
+    }
+
+    //Method for travelling through portals.
+    void EnterPortal(GameObject Portal)
+    {
+        string facing = Portal.GetComponent<PortalController>().facing; //Get the facing direction of the portal.
+        string portalColour; //The colour of the portal.
+        GameObject OtherPortal = null;
+        string otherPortalColour; //The colour of the other portal.
+        Vector2 otherPortalPos; //The position of the other portal.
+        float offset = 1f; //The offset added/subtracted from otherPortalPos when changing position.
+        Vector2 velocity = transform.rigidbody2D.velocity; //The player's current velocity.
+        Vector2 newVelocity = velocity; //The player's new velocity when exiting the other portal.
+        
+        //Assign portalColour.
+        if (Portal.transform.tag == "BluePortal")
+        {
+            portalColour = "Blue";
+            otherPortalColour = "Orange";
+        }
+        else
+        {
+            portalColour = "Orange";
+            otherPortalColour = "Blue";
+        }
+
+        //Check if other portal exists and assign to OtherPortal.
+        if (GameObject.Find(otherPortalColour + "Portal(Clone)"))
+        {
+            OtherPortal = GameObject.Find(otherPortalColour + "Portal(Clone)");
+            otherPortalPos = OtherPortal.transform.position;
+        }
+        else
+        {
+            return;
+        }
+
+        //Setup the new velocity depending on which portal the player is exiting.
+        if (facing == "left" && velocity.x < 0)
+        {
+            newVelocity.x *= -1; //Change velocity from moving right - to moving left.
+        }
+        if (facing == "right" && velocity.x > 0)
+        {
+            newVelocity.x *= -1; //Change velocity from moving left - to moving right.
+        }
+        if (facing == "up" && velocity.y > 0)
+        {
+            newVelocity.y *= -1; //Change velocity from falling - to moving up.
+        }
+        if (facing == "down" && velocity.y < 0)
+        {
+            newVelocity.y *= -1; //Change velocity from moving up - to falling.
+        }
+
+        //Setup where the player will be teleported to.
+        Vector3 pos = otherPortalPos;
+        pos.z = transform.position.z;
+        switch (facing)
+        {
+            case "left":
+                pos.x += offset;
+                break;
+
+            case "right":
+                pos.x -= offset;
+                break;
+
+            case "up":
+                pos.y -= offset;
+                break;
+
+            case "down":
+                pos.y += offset;
+                break;
+        }
+
+        //Change the player's position.
+        transform.position = pos;
+
+        //Change the player's velocity.
+        transform.rigidbody2D.velocity = newVelocity;
+
+        return;
     }
 
     //When the player enters a collision.
@@ -211,6 +330,15 @@ public class PlayerController : MonoBehaviour {
         if (Coll.transform.tag.EndsWith("Block") && isGrounded)
         {
             isGrounded = false;
+        }
+    }
+
+    //When the player enters a trigger.
+    void OnTriggerEnter2D(Collider2D Coll)
+    {
+        if (Coll.transform.tag == "BluePortal" || Coll.transform.tag == "OrangePortal")
+        {
+            EnterPortal(Coll.gameObject);
         }
     }
 }
