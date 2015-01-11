@@ -9,10 +9,11 @@ public class PlayerController : MonoBehaviour {
     public PlayerState currentPlayerState; //Create the variable to contain the enum.
     public Sprite idleSprite, jumpSprite, crouchSprite, fallingSprite, walkSprite;
     public Sprite[] runningSprites = new Sprite[6];
-    public Texture2D cursorEmpty, cursorFill, cursorBlue, cursorOrange;
     bool facingLeft = false; //For switching direction.
     public GameObject PortalShoot; //Prefab PortalShoot.
     public bool bluePortalActive = false, orangePortalActive = false;
+    bool portalCooldown = false; //Whether the player is in cooldown before using another portal.
+    bool orangeGel = false;
 
     //Create an enum for the player's state.
     public enum PlayerState
@@ -32,7 +33,6 @@ public class PlayerController : MonoBehaviour {
     //Update function - gets called every frame.
     void Update()
     {
-        Debug.Log(transform.rigidbody2D.velocity);
         //!!! INPUT MANAGER !!!
         //Check if the player wants to move left or right.
         if (Input.GetAxis("Horizontal") != 0)
@@ -46,11 +46,15 @@ public class PlayerController : MonoBehaviour {
             if (hor < 0)
             {
                 //transform.position -= movePos;
-                if (isGrounded)
+                if (isGrounded && !orangeGel)
                 {
                     transform.rigidbody2D.velocity = new Vector2(-moveSpeed * 30, transform.rigidbody2D.velocity.y);
                 }
-                else if (!isGrounded && transform.rigidbody2D.velocity.x <= 3)
+                else if (isGrounded && orangeGel)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(-moveSpeed * 90, transform.rigidbody2D.velocity.y);
+                }
+                else if (!isGrounded && transform.rigidbody2D.velocity.x >= -4)
                 {
                     transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x - moveSpeed, transform.rigidbody2D.velocity.y);
                 }
@@ -58,11 +62,15 @@ public class PlayerController : MonoBehaviour {
             if (hor > 0)
             {
                 //transform.position += movePos;
-                if (isGrounded)
+                if (isGrounded && !orangeGel)
                 {
                     transform.rigidbody2D.velocity = new Vector2(moveSpeed * 30, transform.rigidbody2D.velocity.y);
                 }
-                else if (!isGrounded && transform.rigidbody2D.velocity.x >= -3)
+                else if (isGrounded && orangeGel)
+                {
+                    transform.rigidbody2D.velocity = new Vector2(moveSpeed * 90, transform.rigidbody2D.velocity.y);
+                }
+                else if (!isGrounded && transform.rigidbody2D.velocity.x <= 4)
                 {
                     transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x + moveSpeed, transform.rigidbody2D.velocity.y);
                 }
@@ -167,12 +175,10 @@ public class PlayerController : MonoBehaviour {
                 Destroy(GameObject.Find("OrangePortal(Clone)").gameObject);
             }
             
-            Cursor.SetCursor(cursorFill, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto); //Reset the cursor.
+            GameObject.Find("Cursor").GetComponent<CursorController>().ChangeSprite("full"); //Reset the cursor.
         }
 
         //!!! SPRITE MANAGER !!!
-        //Debug.Log(currentPlayerState.ToString());
-
         //Check if the player is standing still on the ground.
         if (Input.GetAxis("Horizontal") == 0 && rigidbody2D.velocity.y == 0 && isGrounded && currentPlayerState != PlayerState.CROUCH)
         {
@@ -219,11 +225,18 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    IEnumerator PortalCooldown()
+    {
+        portalCooldown = true;
+        yield return new WaitForSeconds(0.5f);
+        portalCooldown = false;
+    }
+
     //Method for travelling through portals.
     void EnterPortal(GameObject Portal)
     {
+        StartCoroutine(PortalCooldown());
         string facing = Portal.GetComponent<PortalController>().facing; //Get the facing direction of the portal.
-        string portalColour; //The colour of the portal.
         GameObject OtherPortal = null;
         string otherPortalColour; //The colour of the other portal.
         Vector2 otherPortalPos; //The position of the other portal.
@@ -234,12 +247,10 @@ public class PlayerController : MonoBehaviour {
         //Assign portalColour.
         if (Portal.transform.tag == "BluePortal")
         {
-            portalColour = "Blue";
             otherPortalColour = "Orange";
         }
         else
         {
-            portalColour = "Orange";
             otherPortalColour = "Blue";
         }
 
@@ -255,24 +266,99 @@ public class PlayerController : MonoBehaviour {
         }
 
         //Setup the new velocity depending on which portal the player is exiting.
-        if (facing == "left" && velocity.x < 0)
+        int avg = 1; //Used to keep track of what the newVelocity should be divided by.
+        if (facing == "left" && velocity.x > 0)
         {
-            newVelocity.x *= -1; //Change velocity from moving right - to moving left.
+            newVelocity.x += velocity.x * (-1); //Change velocity from moving right - to moving left.
+            ++avg;
         }
-        if (facing == "right" && velocity.x > 0)
+        if (facing == "left" && velocity.y < 0)
         {
-            newVelocity.x *= -1; //Change velocity from moving left - to moving right.
+            newVelocity.x += velocity.y; //Change velocity from falling - to moving left.
+            ++avg;
         }
-        if (facing == "up" && velocity.y > 0)
+        if (facing == "left" && velocity.y > 0)
         {
-            newVelocity.y *= -1; //Change velocity from falling - to moving up.
+            newVelocity.x -= velocity.y; //Change velocity from jumping - to moving left.
+            ++avg;
         }
-        if (facing == "down" && velocity.y < 0)
+        if (facing == "left")
         {
-            newVelocity.y *= -1; //Change velocity from moving up - to falling.
+            //newVelocity.x /= avg; //Set newVelocity.x to the average.
+            //newVelocity.y = velocity.y * (-1);
+            newVelocity.y = 0;
         }
 
-        //Setup where the player will be teleported to.
+        avg = 1; //Reset avg to 1.
+        if (facing == "right" && velocity.x < 0)
+        {
+            newVelocity.x += velocity.x * (-1); //Change velocity from moving left - to moving right.
+            ++avg;
+        }
+        if (facing == "right" && velocity.y < 0)
+        {
+            newVelocity.x += velocity.y * (-1); //Change velocity from falling - to moving right.
+            ++avg;
+        }
+        if (facing == "right" && velocity.y > 0)
+        {
+            newVelocity.x += velocity.y; //Change velocity from jumping - to moving right.
+            ++avg;
+        }
+        if (facing == "right")
+        {
+            //newVelocity.x /= avg; //Set newVelocity.x to the average.
+            //newVelocity.y = velocity.y * (-1);
+            newVelocity.y = 0;
+        }
+
+        avg = 1; //Reset avg to 1.
+        if (facing == "up" && velocity.y < 0)
+        {
+            newVelocity.y += velocity.y * (-1); //Change velocity from falling - to jumping.
+            ++avg;
+        }
+        if (facing == "up" && velocity.x < 0)
+        {
+            newVelocity.y += velocity.x; //Change velocity from moving left - to jumping.
+            ++avg;
+        }
+        if (facing == "up" && velocity.x > 0)
+        {
+            newVelocity.y -= velocity.x; //Change velocity from moving right - to jumping.
+            ++avg;
+        }
+        if (facing == "up")
+        {
+            //newVelocity.y /= avg; //Set newVelocity.y to the average.
+            //newVelocity.x = velocity.x * (-1);
+            newVelocity.x = 0;
+        }
+
+        avg = 1; //Reset avg to 1.
+        if (facing == "down" && velocity.y > 0)
+        {
+            newVelocity.y += velocity.y * (-1); //Change velocity from jumping - to falling.
+            ++avg;
+        }
+        if (facing == "down" && velocity.x < 0)
+        {
+            newVelocity.y += velocity.x; //Change velocity from moving left - to falling.
+            ++avg;
+        }
+        if (facing == "down" && velocity.x > 0)
+        {
+            newVelocity.y -= velocity.x; //Change velocity from moving right - to falling.
+            ++avg;
+        }
+        if (facing == "down")
+        {
+            //newVelocity.y /= avg; //Set newVelocity.y to the average.
+            //newVelocity.x = velocity.x * (-1);
+            newVelocity.x = 0;
+        }
+
+        //Setup where the player will be teleported to
         Vector3 pos = otherPortalPos;
         pos.z = transform.position.z;
         switch (facing)
@@ -298,9 +384,19 @@ public class PlayerController : MonoBehaviour {
         transform.position = pos;
 
         //Change the player's velocity.
-        transform.rigidbody2D.velocity = newVelocity;
+        transform.rigidbody2D.velocity = newVelocity * (-1);
 
         return;
+    }
+
+    //Method for colliding with Blue Gel.
+    void BounceBlueGel()
+    {
+        if (rigidbody2D.velocity.y < 0) //If the player is falling.
+        {
+            float bounceForce = rigidbody2D.velocity.y * 2; //Set bounceForce to the player's velocity * 2.
+            rigidbody2D.velocity += new Vector2(0, -bounceForce); //Add the new velocity to the old velocity.
+        }
     }
 
     //When the player enters a collision.
@@ -338,7 +434,31 @@ public class PlayerController : MonoBehaviour {
     {
         if (Coll.transform.tag == "BluePortal" || Coll.transform.tag == "OrangePortal")
         {
-            EnterPortal(Coll.gameObject);
+            if (!portalCooldown)
+            {
+                EnterPortal(Coll.gameObject);
+            }
+        }
+        if (Coll.transform.tag == "BlueGel") //If collided with blue gel.
+        {
+            BounceBlueGel();
+        }
+        if (Coll.transform.tag == "OrangeGel") //If collided with orange gel.
+        {
+            orangeGel = true; //Set orangeGel to true.
+        }
+        if (Coll.transform.tag == "Finish") //If collided with the finish.
+        {
+            //FINISH
+            Destroy(Coll.gameObject);
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D Coll)
+    {
+        if (Coll.transform.tag == "OrangeGel") //If exited the collision with Orange Gel.
+        {
+            orangeGel = false; //Set orangeGel to false.
         }
     }
 }

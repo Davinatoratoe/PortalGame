@@ -6,7 +6,6 @@ public class PortalShootController : MonoBehaviour {
     Vector3 mousePos; //The mouse's position.
     Vector3 direction; //The direction towards the mouse.
     float speed = 0.2f; //The speed the PortalShoot will travel.
-    public Texture2D cursorEmpty, cursorFill, cursorBlue, cursorOrange; //Declare cursor sprites.
     public GameObject BluePortal, OrangePortal; //Declare portal prefabs.
     public string portalColour; //The colour of the portal.
     public bool firstPortal; //Whether it is the first portal in the scene.
@@ -15,7 +14,6 @@ public class PortalShootController : MonoBehaviour {
 
     void Start()
     {
-        Cursor.SetCursor(cursorFill, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto); //Set the starting sprite for the cursor.
         Player = GameObject.Find("Player"); //Assign Player.
         mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition); //Assign mousePos to the mouse's position in world-point.
         mousePos.z = transform.position.z; //Keep the z equal to the PortalShoot's z.
@@ -45,22 +43,22 @@ public class PortalShootController : MonoBehaviour {
 
             if (portalColour == "blue" && firstPortal)
             {
-                Cursor.SetCursor(cursorOrange, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto); //Set the cursor sprite.
+                GameObject.Find("Cursor").GetComponent<CursorController>().ChangeSprite("orange"); //Set the cursor sprite to orange.
                 Player.GetComponent<PlayerController>().bluePortalActive = true;
             }
             if (portalColour == "blue" && !firstPortal)
             {
-                Cursor.SetCursor(cursorEmpty, new Vector2(cursorEmpty.width / 2, cursorBlue.height / 2), CursorMode.Auto);
+                GameObject.Find("Cursor").GetComponent<CursorController>().ChangeSprite("empty");
                 Player.GetComponent<PlayerController>().bluePortalActive = true;
             }
             if (portalColour == "orange" && firstPortal)
             {
-                Cursor.SetCursor(cursorBlue, new Vector2(cursorOrange.width / 2, cursorBlue.height / 2), CursorMode.Auto);
+                GameObject.Find("Cursor").GetComponent<CursorController>().ChangeSprite("blue");
                 Player.GetComponent<PlayerController>().orangePortalActive = true;
             }
             if (portalColour == "orange" && !firstPortal)
             {
-                Cursor.SetCursor(cursorEmpty, new Vector2(cursorEmpty.width / 2, cursorBlue.height / 2), CursorMode.Auto);
+                GameObject.Find("Cursor").GetComponent<CursorController>().ChangeSprite("empty");
                 Player.GetComponent<PlayerController>().orangePortalActive = true;
             }
 
@@ -94,22 +92,6 @@ public class PortalShootController : MonoBehaviour {
 
     void SpawnPortal()
     {
-        Quaternion portalRotation = Quaternion.identity; //Local variable for the rotation of the portal.
-        
-        //Change portalRotation based on the facing variable.
-        switch (facing)
-        {
-            case "left":
-            case "right":
-                portalRotation = Quaternion.identity; //Keep the portal the same rotation. (Same as this gameobject's rotation)
-                break;
-
-            case "up":
-            case "down":
-                portalRotation.z = 90; //Rotate the portal 90 degrees.
-                break;
-        }
-
         GameObject Obj = null; //The new portal gameobject.
         if (portalColour == "blue") //If the portal is blue.
         {
@@ -119,8 +101,6 @@ public class PortalShootController : MonoBehaviour {
         {
             Obj = Instantiate(OrangePortal, transform.position, Quaternion.identity) as GameObject; //Instantiate an orange portal.
         }
-        Obj.transform.localRotation = portalRotation;
         Obj.GetComponent<PortalController>().facing = facing;
-        Debug.Log(facing);
     }
 }
