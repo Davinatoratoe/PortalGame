@@ -4,21 +4,30 @@ using System.Collections;
 public class OrangeGelController : MonoBehaviour 
 {
     public float speedLimit; //The speed limit.
-    private float oldSpeed; //For keeping a copy of the player's original speed.
+    private float speed = 0; //The speed being added.
 
     private void SpeedUp(GameObject Player)
     {
-        if (Player.GetComponent<PlayerController>().speed < speedLimit)
+        float hor = Input.GetAxis("Horizontal"); //Get the input on the horizontal axis.
+        if (hor > 0.1f) //If moving right.
         {
-            Player.GetComponent<PlayerController>().speed *= 1.1f; //Amplify the player's speed.
+            if (speed < speedLimit) //If speed is below the speed limit.
+            {
+                speed += 0.2f; //Add to speed.
+                Player.rigidbody2D.velocity += new Vector2(speed, 0); //Add to the player's velocity.
+            }
         }
-    }
-
-    void OnCollisionEnter2D(Collision2D Coll)
-    {
-        if (Coll.transform.tag == "Player") //If the player enters the orange gel collision.
+        else if (hor < 0.1f) //If moving left.
         {
-            oldSpeed = Coll.gameObject.GetComponent<PlayerController>().speed; //Save the player's original speed.
+            if (speed < speedLimit) //If speed is below the speed limit.
+            {
+                speed += 0.2f; //Add to speed.
+                Player.rigidbody2D.velocity += new Vector2(-speed, 0); //Add to the player's velocity.
+            }
+        }
+        else
+        {
+            speed = 0; //Reset the speed.
         }
     }
 
@@ -34,7 +43,7 @@ public class OrangeGelController : MonoBehaviour
     {
         if (Coll.transform.tag == "Player") //If the player exits the collision.
         {
-            Coll.gameObject.GetComponent<PlayerController>().speed = oldSpeed; //Reset the player's speed.
+            speed = 0;
         }
     }
 }

@@ -94,7 +94,7 @@ public class PortalShootController : MonoBehaviour
             }
             CreatePortal();
         }
-        if (Coll.transform.tag == "UnPortableSurface")
+        if (Coll.transform.tag == "UnPortableSurface" || Coll.transform.name == "PortalGrill")
         {
             Destroy(gameObject);
         }

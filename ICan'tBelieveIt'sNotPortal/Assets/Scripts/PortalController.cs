@@ -99,10 +99,10 @@ public class PortalController : MonoBehaviour
         switch (otherPortalDirection)
         {
             case "right":
-                Player.rigidbody2D.velocity = transform.up * Player.rigidbody2D.velocity.magnitude;
+                Player.rigidbody2D.velocity = new Vector2(1, 0) * Player.rigidbody2D.velocity.magnitude;
                 break;
             case "left":
-                Player.rigidbody2D.velocity = transform.up * -Player.rigidbody2D.velocity.magnitude;
+                Player.rigidbody2D.velocity = new Vector2(1, 0) * -Player.rigidbody2D.velocity.magnitude;
                 break;
             case "up":
                 Player.rigidbody2D.velocity = new Vector2(0, 1) * Player.rigidbody2D.velocity.magnitude;
