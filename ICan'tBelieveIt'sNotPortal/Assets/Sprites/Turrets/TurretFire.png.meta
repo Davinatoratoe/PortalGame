@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: bc5aa66abb0370b478222f7fac28fa9b
+guid: 5ee2e7739e100734786b71fc866b4660
 TextureImporter:
   fileIDToRecycleName:
-    21300000: StoneFloor
+    21300000: TurretFire
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0

@@ -16,10 +16,7 @@ public class PortalShootController : MonoBehaviour
 
     void Update()
     {
-        if (dir != null)
-        {
-            transform.position += new Vector3(-dir.x, -dir.y, transform.position.z) / speed; //Move towards dir.
-        }
+        transform.position += new Vector3(-dir.x, -dir.y, transform.position.z) / speed; //Move towards dir.
     }
 
     //Set the colour of the portal.

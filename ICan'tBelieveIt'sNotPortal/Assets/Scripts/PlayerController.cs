@@ -8,12 +8,30 @@ public class PlayerController : MonoBehaviour
     public float speed; //The speed of the player.
     public float jumpForce; //The force applied when the player jumps.
     private bool facingLeft = false; //The direction the player is facing.
+    public int playerHealth = 100; //The player's health.
+    private bool playerDead = false; //Whether the player is dead.
 
     void Update()
     {
         HandleInputs();
         HandlePhysics();
         FaceDirection();
+        HandleHealth();
+    }
+
+    //Handle the player's health.
+    private void HandleHealth()
+    {
+        if (!playerDead)
+        {
+            GameObject.Find("Health").GetComponent<TextMesh>().text = "Health: " + playerHealth; //Update the on-screen health text.
+
+            if (playerHealth <= 0) //If the player is dead.
+            {
+                GameObject.Find("GameController").GetComponent<GameController>().StartCoroutine("PlayerDie");
+                Destroy(gameObject);
+            }
+        }
     }
 
     //Handle all inputs from the player.
@@ -32,7 +50,7 @@ public class PlayerController : MonoBehaviour
         {
             GetComponent<SpriteRenderer>().sprite = Idle;
         }
-        if (Input.GetKeyDown(KeyCode.Space) && rigidbody2D.velocity.y == 0) //If player jumps.
+        if (Input.GetKeyDown(KeyCode.Space) && rigidbody2D.velocity.y > -0.5f && rigidbody2D.velocity.y < 0.5f) //If player jumps.
         {
             rigidbody2D.AddForce(new Vector2(0, jumpForce));
         }
