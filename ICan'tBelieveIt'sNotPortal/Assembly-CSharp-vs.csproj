@@ -47,12 +47,18 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\BlueGelController.cs" />
+     <Compile Include="Assets\Scripts\BulletController.cs" />
      <Compile Include="Assets\Scripts\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\CursorController.cs" />
+     <Compile Include="Assets\Scripts\EndController.cs" />
+     <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\OrangeGelController.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Scripts\PortalController.cs" />
+     <Compile Include="Assets\Scripts\PortalGrillController.cs" />
      <Compile Include="Assets\Scripts\PortalShootController.cs" />
+     <Compile Include="Assets\Scripts\TurretController.cs" />
+     <Compile Include="Assets\Scripts\WaterController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
